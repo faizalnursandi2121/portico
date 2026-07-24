@@ -8,6 +8,7 @@ Thumbs.db
 .vscode/
 .idea/
 /.worktrees/
+/docs/superpowers/
 
 # Application Data
 *.log

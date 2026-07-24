@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="public/assets/img/logo.png" alt="MIVO Logo" width="200" />
+  <img src="public/assets/img/logo.png" alt="Portico Logo" width="200" />
 </p>
 
-# MIVO (Mikrotik Voucher)
+# Portico (MikroTik Voucher)
 
 > **Modern. Lightweight. Efficient.**
 
-MIVO is a next-generation **Mikrotik Voucher Management System** with a modern MVC architecture, designed to run efficiently on low-end devices like STB (Set Top Boxes) and Android, while providing a premium user experience on desktop.
+Portico is a next-generation **MikroTik Voucher Management System** with a modern MVC architecture, designed to run efficiently on low-end devices like STB (Set Top Boxes) and Android, while providing a premium user experience on desktop.
 
 ![Status](https://img.shields.io/badge/Status-Beta-orange) ![PHP](https://img.shields.io/badge/PHP-8.0+-777BB4) ![License](https://img.shields.io/badge/License-MIT-green)
 
@@ -17,7 +17,7 @@ MIVO is a next-generation **Mikrotik Voucher Management System** with a modern M
 *   **Responsive**: Fully optimized mobile experience with touch-friendly navigation.
 *   **Secure**: Environment-based configuration (`.env`), encrypted credentials, and secure session management.
 *   **API Ready**: Built-in REST API support with CORS management for external integrations.
-*   **CLI Tool**: Includes `mivo` CLI helper for easy management and installation.
+*   **CLI Tool**: Includes the bundled CLI helper for easy management and installation. The existing `mivo` entry point is retained for backward compatibility.
 
 ## Installation
 
@@ -28,17 +28,18 @@ MIVO is a next-generation **Mikrotik Voucher Management System** with a modern M
 
 ### Quick Start
 
-1.  **Install via Composer**
+1.  **Install from source**
     ```bash
-    composer create-project mivodev/mivo
-    cd mivo
+    git clone https://github.com/faizalnursandi2121/portico.git
+    cd portico
+    composer install
     ```
 
     > **Alternative (Docker):**
     > ```bash
-    > docker pull mivodev/mivo
+    > docker compose up -d --build
     > ```
-    > *See [DOCKER_README.md](DOCKER_README.md) for more tags.*
+    > *See [DOCKER_README.md](DOCKER_README.md) for deployment details.*
 
 2.  **Setup Environment**
     ```bash
@@ -73,7 +74,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Support the Project
 
-If you find MIVO useful, please consider supporting its development. Your contribution helps keep the project alive!
+If you find Portico useful, please consider supporting its development. Your contribution helps keep the project alive!
 
 [![SociaBuzz Tribe](https://img.shields.io/badge/SociaBuzz-Tribe-green?style=for-the-badge&logo=sociabuzz&logoColor=white)](https://sociabuzz.com/dyzulkdev/tribe)
 
@@ -83,4 +84,4 @@ If you find MIVO useful, please consider supporting its development. Your contri
 This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 ---
-*Created by MivoDev*
+*Portico internal distribution*
