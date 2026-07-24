@@ -440,7 +440,8 @@ foreach ($languages as $lang) {
             
             <?php if (isset($_SESSION['user_id'])) { ?>
             <!-- Logout (System) -->
-             <a href="/logout" class="group flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/50 dark:bg-white/5 border border-accents-2 dark:border-white/10 hover:bg-red-500/10 hover:border-red-500/20 transition-all decoration-0 shadow-sm" title="Logout from Mivo">
+             <form action="/logout" method="POST" class="w-full">
+             <button type="submit" class="group flex items-center justify-between w-full px-3 py-2.5 rounded-xl bg-white/50 dark:bg-white/5 border border-accents-2 dark:border-white/10 hover:bg-red-500/10 hover:border-red-500/20 transition-all decoration-0 shadow-sm" title="Logout from Mivo">
                 <div class="flex items-center gap-3">
                     <div class="p-1.5 rounded-lg bg-red-500/10 text-red-500 group-hover:bg-red-500/20 transition-colors">
                          <i data-lucide="log-out" class="w-4 h-4"></i>
@@ -451,7 +452,8 @@ foreach ($languages as $lang) {
                     </div>
                 </div>
                 <i data-lucide="chevron-right" class="!w-4 !h-4 !text-black dark:!text-white !flex-shrink-0 group-hover:!text-red-500 transition-colors"></i>
-            </a>
+            </button>
+            </form>
             <?php } ?>
         </div>
     </aside>
@@ -509,5 +511,4 @@ foreach ($languages as $lang) {
         <!-- Scrollable Page Content -->
         <main class="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 md:p-8">
             <div class="max-w-7xl mx-auto">
-
 

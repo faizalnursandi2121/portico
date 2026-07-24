@@ -80,9 +80,11 @@ foreach ($languages as $lang) {
 
                     <?php if (isset($_SESSION['user_id'])) { ?>
                         <div class="pill-divider"></div>
-                        <a href="/logout" class="p-1.5 rounded-lg text-accents-5 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all ml-0.5" title="Logout">
+                        <form action="/logout" method="POST" class="inline">
+                        <button type="submit" class="p-1.5 rounded-lg text-accents-5 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all ml-0.5" title="Logout">
                             <i data-lucide="log-out" class="w-4 h-4 !text-black dark:!text-white" stroke-width="2.5"></i>
-                        </a>
+                        </button>
+                        </form>
                     <?php } ?>
                 </div>
 
@@ -140,10 +142,12 @@ foreach ($languages as $lang) {
 
                 <?php if (isset($_SESSION['user_id'])) { ?>
                 <div class="pt-2 border-t border-accents-2">
-                    <a href="/logout" class="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-red-500/10 text-red-600 font-bold hover:bg-red-500/20 transition-all">
+                    <form action="/logout" method="POST" class="w-full">
+                    <button type="submit" class="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-red-500/10 text-red-600 font-bold hover:bg-red-500/20 transition-all">
                         <i data-lucide="log-out" class="w-5 h-5 !text-black dark:!text-white" stroke-width="2.5"></i>
                         <span>Logout System</span>
-                    </a>
+                    </button>
+                    </form>
                 </div>
                 <?php } ?>
             </div>

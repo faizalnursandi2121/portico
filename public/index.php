@@ -5,6 +5,7 @@ use App\Core\Autoloader;
 use App\Core\Env;
 use App\Core\PluginManager;
 use App\Core\Router;
+use App\Core\Session;
 use App\Helpers\ErrorHelper;
 
 // Start Output Buffering
@@ -22,15 +23,15 @@ if (php_sapi_name() === 'cli-server') {
     }
 }
 
-// Start Session
-session_start();
-
 // Manual require for the Autoloader class since it can't autoload itself
 require_once ROOT.'/app/Core/Autoloader.php';
 Autoloader::register();
 
 // Load Environment Variables
 Env::load(ROOT.'/.env');
+
+// Configure and start the session after environment variables are available.
+Session::start();
 
 // Initialize Router
 $router = new Router;
@@ -40,7 +41,7 @@ $pluginManager = new PluginManager;
 $pluginManager->loadPlugins();
 
 // Global Error Handling for Dev Mode
-if (SiteConfig::IS_DEV) {
+if (SiteConfig::isDebugEnabled()) {
     // Catch Fatal Errors (Shutdown)
     register_shutdown_function(function () {
         $error = error_get_last();
@@ -66,13 +67,13 @@ require_once ROOT.'/routes/api.php';
 try {
     $router->dispatch($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
 } catch (Exception $e) {
-    if (SiteConfig::IS_DEV) {
+    if (SiteConfig::isDebugEnabled()) {
         ErrorHelper::showException($e);
     } else {
         ErrorHelper::show(500, 'Internal Server Error', $e->getMessage());
     }
 } catch (Error $e) {
-    if (SiteConfig::IS_DEV) {
+    if (SiteConfig::isDebugEnabled()) {
         ErrorHelper::showException($e);
     } else {
         ErrorHelper::show(500, 'System Error', $e->getMessage());

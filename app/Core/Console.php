@@ -186,10 +186,7 @@ class Console
         $keyExists = false;
 
         if (file_exists($envPath)) {
-            $envIds = parse_ini_file($envPath);
-            if (! empty($envIds['APP_KEY']) && $envIds['APP_KEY'] !== 'mivo_official_secret_key_32bytes') {
-                $keyExists = true;
-            }
+            $keyExists = SiteConfig::hasSecretKey();
         }
 
         if (! $keyExists) {

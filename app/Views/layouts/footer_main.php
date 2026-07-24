@@ -37,6 +37,7 @@ if (isset($session) && ! empty($session)) { ?>
 
     <script>
         window.MIVO_VERSION = "<?= SiteConfig::APP_VERSION ?>";
+        window.CSRF_TOKEN = "<?= htmlspecialchars(\App\Helpers\CsrfHelper::token(), ENT_QUOTES, 'UTF-8') ?>";
     </script>
     <script src="/assets/js/modules/update-checker.js"></script>
     <script>
@@ -278,7 +279,10 @@ if (isset($session) && ! empty($session)) { ?>
             if (!confirmed) return;
 
             try {
-                const res = await fetch(url, { method: 'POST' });
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': window.CSRF_TOKEN }
+                });
                 const data = await res.json();
                 
                 if (data.success) {

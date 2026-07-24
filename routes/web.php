@@ -29,7 +29,9 @@ $router->post('/install', [InstallController::class, 'process']);
 // Authentication
 $router->get('/login', [AuthController::class, 'showLogin']);
 $router->post('/login', [AuthController::class, 'login']);
+// Deprecated compatibility route. Remove after the POST logout rollout is verified.
 $router->get('/logout', [AuthController::class, 'logout']);
+$router->post('/logout', [AuthController::class, 'logout']);
 
 // Public Status Check (Requires Valid Router Session, but NO Auth)
 $router->group(['middleware' => 'router.valid'], function ($router) {

@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use App\Core\Session;
+
 class FlashHelper
 {
     const SESSION_KEY = 'flash_notification';
@@ -18,7 +20,7 @@ class FlashHelper
     public static function set($type, $title, $message = null, $params = [], $isTranslated = false)
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            Session::start();
         }
 
         $_SESSION[self::SESSION_KEY] = [
@@ -38,7 +40,7 @@ class FlashHelper
     public static function has()
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            Session::start();
         }
 
         return isset($_SESSION[self::SESSION_KEY]);
@@ -52,7 +54,7 @@ class FlashHelper
     public static function get()
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            Session::start();
         }
 
         if (self::has()) {

@@ -46,8 +46,8 @@ class InstallController extends Controller
             // 1. Run Migrations
             Migrations::up();
 
-            // 2. Generate Key if default
-            if (SiteConfig::getSecretKey() === 'mivo_official_secret_key_32bytes') {
+            // 2. Generate a key when APP_KEY is missing or invalid.
+            if (! SiteConfig::hasSecretKey()) {
                 $this->generateKey();
             }
 
@@ -91,15 +91,13 @@ class InstallController extends Controller
 
     private function isInstalled()
     {
-        // Check if .env exists and APP_KEY is set to something other than the default/example
+        // Check if .env exists and APP_KEY is valid.
         $envPath = ROOT.'/.env';
         if (! file_exists($envPath)) {
-            // Check if SiteConfig has a manual override (legacy)
-            return SiteConfig::getSecretKey() !== 'mivo_official_secret_key_32bytes';
+            return SiteConfig::hasSecretKey();
         }
 
-        $key = getenv('APP_KEY');
-        $keyChanged = ($key && $key !== 'mivo_official_secret_key_32bytes');
+        $keyChanged = SiteConfig::hasSecretKey();
 
         try {
             $db = Database::getInstance();

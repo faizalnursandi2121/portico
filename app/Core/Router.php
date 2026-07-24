@@ -5,6 +5,7 @@ namespace App\Core;
 use App\Helpers\ErrorHelper;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CorsMiddleware;
+use App\Middleware\CsrfMiddleware;
 use App\Middleware\RouterCheckMiddleware;
 
 class Router
@@ -18,6 +19,7 @@ class Router
     protected $middlewareAliases = [
         'auth' => AuthMiddleware::class,
         'cors' => CorsMiddleware::class,
+        'csrf' => CsrfMiddleware::class,
         'router.valid' => RouterCheckMiddleware::class,
     ];
 
@@ -76,9 +78,15 @@ class Router
     {
         $path = $this->normalizePath($path);
 
+        $middlewares = $this->currentGroupMiddleware;
+        if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)
+            && ! str_starts_with($path, '/api/')) {
+            $middlewares[] = 'csrf';
+        }
+
         $this->routes[$method][$path] = [
             'callback' => $callback,
-            'middleware' => $this->currentGroupMiddleware, // Inherit group middleware
+            'middleware' => $middlewares, // Inherit group middleware
         ];
 
         $this->lastRouteKey = ['method' => $method, 'path' => $path];
