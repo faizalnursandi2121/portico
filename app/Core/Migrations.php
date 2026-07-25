@@ -112,6 +112,16 @@ class Migrations
         $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_api_rate_limits_scope_identifier ON api_rate_limits (scope, identifier)');
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_api_rate_limits_expires_at ON api_rate_limits (expires_at)');
 
+        // 10. Failed Login Attempts
+        $pdo->exec('CREATE TABLE IF NOT EXISTS login_attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            ip_address TEXT NOT NULL,
+            attempted_at INTEGER NOT NULL
+        )');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_login_attempt_lookup
+            ON login_attempts (username, ip_address, attempted_at)');
+
         return true;
     }
 }
