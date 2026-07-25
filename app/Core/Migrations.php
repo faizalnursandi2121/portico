@@ -100,6 +100,18 @@ class Migrations
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
 
+        // 9. Public API Rate Limits
+        $pdo->exec('CREATE TABLE IF NOT EXISTS api_rate_limits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scope TEXT NOT NULL,
+            identifier TEXT NOT NULL,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            expires_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )');
+        $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_api_rate_limits_scope_identifier ON api_rate_limits (scope, identifier)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_api_rate_limits_expires_at ON api_rate_limits (expires_at)');
+
         return true;
     }
 }

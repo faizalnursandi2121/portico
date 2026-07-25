@@ -7,6 +7,7 @@ use App\Core\Controller;
 use App\Helpers\FormatHelper;
 use App\Helpers\RouterTargetHelper;
 use App\Libraries\RouterOSAPI;
+use App\Models\ApiRateLimit;
 use App\Models\Config;
 
 class PublicStatusController extends Controller
@@ -53,6 +54,17 @@ class PublicStatusController extends Controller
 
         // Code: Can be in URL or Body
         $code = $codeUrl ?? ($input['code'] ?? '');
+        $clientIp = trim((string) ($_SERVER['REMOTE_ADDR'] ?? '')) ?: 'unknown';
+        $rateLimit = new ApiRateLimit;
+        $retryAfter = $code === '' ? 0 : $rateLimit->record('ip', $clientIp);
+
+        if ($retryAfter > 0) {
+            header('Retry-After: '.$retryAfter);
+            http_response_code(429);
+            echo json_encode(['error' => 'Too Many Requests']);
+
+            return;
+        }
 
         if (empty($session) || empty($code)) {
             http_response_code(400);
@@ -67,6 +79,16 @@ class PublicStatusController extends Controller
         if (! $creds) {
             http_response_code(404);
             echo json_encode(['error' => 'Session not found']);
+
+            return;
+        }
+
+        $retryAfter = $rateLimit->record('session', $session);
+
+        if ($retryAfter > 0) {
+            header('Retry-After: '.$retryAfter);
+            http_response_code(429);
+            echo json_encode(['error' => 'Too Many Requests']);
 
             return;
         }
