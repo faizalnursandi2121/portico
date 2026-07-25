@@ -2,6 +2,8 @@
 
 namespace App\Libraries;
 
+use App\Helpers\RouterTargetHelper;
+
 /*****************************
  *
  * RouterOS PHP API class v1.6 (Ported to MIVO)
@@ -76,12 +78,28 @@ class RouterOSAPI
 
     public function connect($ip, $login, $password)
     {
+        if (! is_string($ip)) {
+            $this->error_str = 'Invalid router target';
+
+            return false;
+        }
+
+        try {
+            $ip = RouterTargetHelper::resolve($ip);
+        } catch (\InvalidArgumentException) {
+            $this->error_str = 'Invalid router target';
+
+            return false;
+        }
+
+        $socketTarget = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? '['.$ip.']' : $ip;
         for ($ATTEMPT = 1; $ATTEMPT <= $this->attempts; $ATTEMPT++) {
             $this->connected = false;
             $PROTOCOL = ($this->ssl ? 'ssl://' : '');
             $context = stream_context_create(['ssl' => ['ciphers' => 'ADH:ALL', 'verify_peer' => false, 'verify_peer_name' => false]]);
-            $this->debug('Connection attempt #'.$ATTEMPT.' to '.$PROTOCOL.$ip.':'.$this->port.'...');
-            $this->socket = @stream_socket_client($PROTOCOL.$ip.':'.$this->port, $this->error_no, $this->error_str, $this->timeout, STREAM_CLIENT_CONNECT, $context);
+            $endpoint = $PROTOCOL.$socketTarget.':'.$this->port;
+            $this->debug('Connection attempt #'.$ATTEMPT.' to '.$endpoint.'...');
+            $this->socket = $this->openSocket($endpoint, $context);
             if ($this->socket) {
                 stream_set_timeout($this->socket, $this->timeout);
                 $this->write('/login', false);
@@ -124,6 +142,11 @@ class RouterOSAPI
         }
 
         return $this->connected;
+    }
+
+    protected function openSocket(string $endpoint, $context)
+    {
+        return @stream_socket_client($endpoint, $this->error_no, $this->error_str, $this->timeout, STREAM_CLIENT_CONNECT, $context);
     }
 
     public function disconnect()

@@ -9,6 +9,7 @@ use App\Core\PluginManager;
 use App\Helpers\EncryptionHelper;
 use App\Helpers\FlashHelper;
 use App\Helpers\FormatHelper;
+use App\Helpers\RouterTargetHelper;
 use App\Models\Config;
 use App\Models\Logo;
 use App\Models\Setting;
@@ -47,13 +48,21 @@ class SettingsController extends Controller
     // ... (Existing Store methods) ...
     public function store()
     {
+        $ipAddress = $_POST['ipmik'] ?? '';
+        if (! RouterTargetHelper::validate((string) $ipAddress)) {
+            FlashHelper::set('error', 'Invalid Router Target', 'Enter a valid router IP address or hostname.');
+            header('Location: /settings/routers');
+
+            return;
+        }
+
         // Sanitize Session Name (Duplicate Frontend Logic)
         $rawSess = $_POST['sessname'] ?? '';
         $sessName = preg_replace('/[^a-z0-9-]/', '', strtolower(str_replace(' ', '-', $rawSess)));
 
         $data = [
             'session_name' => $sessName,
-            'ip_address' => $_POST['ipmik'],
+            'ip_address' => $ipAddress,
             'username' => $_POST['usermik'],
             'password' => $_POST['passmik'],
             'hotspot_name' => $_POST['hotspotname'],
@@ -114,6 +123,13 @@ class SettingsController extends Controller
     public function update()
     {
         $id = $_POST['id'];
+        $ipAddress = $_POST['ipmik'] ?? '';
+        if (! RouterTargetHelper::validate((string) $ipAddress)) {
+            FlashHelper::set('error', 'Invalid Router Target', 'Enter a valid router IP address or hostname.');
+            header('Location: /settings/routers');
+
+            return;
+        }
 
         // Sanitize Session Name
         $rawSess = $_POST['sessname'] ?? '';
@@ -121,7 +137,7 @@ class SettingsController extends Controller
 
         $data = [
             'session_name' => $sessName,
-            'ip_address' => $_POST['ipmik'],
+            'ip_address' => $ipAddress,
             'username' => $_POST['usermik'],
             'password' => $_POST['passmik'], // Can be empty if not changing
             'hotspot_name' => $_POST['hotspotname'],

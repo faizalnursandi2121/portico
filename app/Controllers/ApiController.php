@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Helpers\RouterTargetHelper;
 use App\Libraries\RouterOSAPI;
 use App\Models\Config;
 
@@ -44,11 +45,20 @@ class ApiController extends Controller
             return;
         }
 
+        try {
+            $resolvedIp = RouterTargetHelper::resolve((string) $ip);
+        } catch (\InvalidArgumentException) {
+            http_response_code(422);
+            echo json_encode(['error' => 'Invalid router target']);
+
+            return;
+        }
+
         $api = new RouterOSAPI;
         // $api->debug = true; // Enable for debugging
         $api->port = (int) $port;
 
-        if ($api->connect($ip, $user, $pass)) {
+        if ($api->connect($resolvedIp, $user, $pass)) {
             $api->write('/interface/print');
             $read = $api->read(false);
             $interfaces = $api->parseResponse($read);

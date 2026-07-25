@@ -10,7 +10,7 @@ use App\Controllers\PublicStatusController;
 // Apply Global CORS to all API routes
 $router->group(['middleware' => 'cors'], function ($router) {
 
-    $router->post('/api/router/interfaces', [ApiController::class, 'getInterfaces']);
+    $router->post('/api/router/interfaces', [ApiController::class, 'getInterfaces'])->middleware('auth');
 
     // Public Status API (No Auth Check in Controller)
     $router->post('/api/status/check', [PublicStatusController::class, 'check']);

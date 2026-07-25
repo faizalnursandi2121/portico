@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Config\SiteConfig;
 use App\Core\Controller;
 use App\Helpers\FormatHelper;
+use App\Helpers\RouterTargetHelper;
 use App\Libraries\RouterOSAPI;
 use App\Models\Config;
 
@@ -70,13 +71,22 @@ class PublicStatusController extends Controller
             return;
         }
 
+        try {
+            $resolvedIp = RouterTargetHelper::resolve((string) $creds['ip']);
+        } catch (\InvalidArgumentException) {
+            http_response_code(422);
+            echo json_encode(['error' => 'Invalid router target']);
+
+            return;
+        }
+
         $password = $creds['password'];
         if (isset($creds['source']) && $creds['source'] === 'legacy') {
             $password = RouterOSAPI::decrypt($password);
         }
 
         $api = new RouterOSAPI;
-        if (! $api->connect($creds['ip'], $creds['user'], $password)) {
+        if (! $api->connect($resolvedIp, $creds['user'], $password)) {
             http_response_code(500);
             echo json_encode(['error' => 'Router Connection Failed']);
 
