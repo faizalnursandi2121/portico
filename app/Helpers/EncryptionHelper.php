@@ -13,13 +13,20 @@ class EncryptionHelper
         }
 
         $key = SiteConfig::getSecretKey();
+        $ivLength = openssl_cipher_iv_length('aes-256-gcm');
+        if (! is_int($ivLength) || $ivLength <= 0) {
+            throw new \RuntimeException('Unable to determine AES-256-GCM IV length.');
+        }
 
-        // Simple OpenSSL encryption
-        $iv_length = openssl_cipher_iv_length('aes-256-cbc');
-        $iv = openssl_random_pseudo_bytes($iv_length);
-        $encrypted = openssl_encrypt($text, 'aes-256-cbc', $key, 0, $iv);
+        $iv = random_bytes($ivLength);
+        $tag = null;
+        $encrypted = openssl_encrypt($text, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
 
-        return base64_encode($encrypted.'::'.$iv);
+        if ($encrypted === false || ! is_string($tag) || strlen($tag) !== 16) {
+            throw new \RuntimeException('AES-256-GCM encryption failed.');
+        }
+
+        return 'v2:'.base64_encode($iv.$tag.$encrypted);
     }
 
     public static function decrypt($text)
@@ -30,23 +37,37 @@ class EncryptionHelper
 
         $key = SiteConfig::getSecretKey();
 
-        try {
-            $decoded = base64_decode($text, true);
-            if ($decoded === false) {
-                return $text;
-            } // Not valid base64
-
-            $parts = explode('::', $decoded, 2);
-            if (count($parts) !== 2) {
-                return $text; // Not our encrypted format, likely legacy/plain
+        if (str_starts_with($text, 'v2:')) {
+            $decoded = base64_decode(substr($text, 3), true);
+            $ivLength = openssl_cipher_iv_length('aes-256-gcm');
+            if ($decoded === false || ! is_int($ivLength) || $ivLength <= 0 || strlen($decoded) <= $ivLength + 16) {
+                return false;
             }
 
-            [$encrypted_data, $iv] = $parts;
+            $iv = substr($decoded, 0, $ivLength);
+            $tag = substr($decoded, $ivLength, 16);
+            $encrypted = substr($decoded, $ivLength + 16);
 
-            return openssl_decrypt($encrypted_data, 'aes-256-cbc', $key, 0, $iv);
-        } catch (\Exception $e) {
-            return $text; // Fallback
+            if (strlen($iv) !== $ivLength || strlen($tag) !== 16 || $encrypted === '') {
+                return false;
+            }
+
+            return openssl_decrypt($encrypted, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
         }
+
+        $decoded = base64_decode($text, true);
+        if ($decoded === false) {
+            return $text;
+        }
+
+        $parts = explode('::', $decoded, 2);
+        if (count($parts) !== 2) {
+            return $text;
+        }
+
+        [$encryptedData, $iv] = $parts;
+
+        return openssl_decrypt($encryptedData, 'aes-256-cbc', $key, 0, $iv);
     }
 
     public static function formatBytes($bytes, $precision = 2)
