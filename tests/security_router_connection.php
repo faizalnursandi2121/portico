@@ -8,6 +8,10 @@ require_once ROOT.'/app/Core/Autoloader.php';
 
 use App\Libraries\RouterOSAPI;
 
+putenv('APP_ENV=production');
+putenv('ROUTEROS_TLS');
+putenv('ROUTEROS_ALLOW_INSECURE');
+
 if (! method_exists(RouterOSAPI::class, 'openSocket')) {
     throw new RuntimeException('FAIL: shared RouterOS connection boundary is not testable');
 }
@@ -28,7 +32,7 @@ $ipv6Api = new CapturingRouterOSAPI;
 $ipv6Api->attempts = 1;
 $ipv6Api->delay = 0;
 $ipv6Api->connect('fc00::1', 'user', 'password');
-if ($ipv6Api->capturedEndpoint !== '[fc00::1]:8728') {
+if ($ipv6Api->capturedEndpoint !== 'tls://[fc00::1]:8729') {
     throw new RuntimeException('FAIL: IPv6 RouterOS endpoint must use brackets');
 }
 

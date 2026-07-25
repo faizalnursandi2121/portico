@@ -2,6 +2,7 @@
 
 namespace App\Libraries;
 
+use App\Config\SiteConfig;
 use App\Helpers\RouterTargetHelper;
 
 /*****************************
@@ -18,9 +19,9 @@ class RouterOSAPI
 
     public $connected = false; //  Connection state
 
-    public $port = 8728;  //  Port to connect to (default 8729 for ssl)
+    public $port = null;  // Explicit port, otherwise 8729 for TLS or 8728 for plaintext
 
-    public $ssl = false; //  Connect using SSL (must enable api-ssl in IP/Services)
+    public $ssl = true; // Connect using TLS (must enable api-ssl in IP/Services)
 
     public $timeout = 3;     //  Connection attempt timeout and data read timeout
 
@@ -36,7 +37,7 @@ class RouterOSAPI
 
     public function __construct()
     {
-        // Constructor logic if needed
+        $this->ssl = self::environmentFlag('ROUTEROS_TLS', true);
     }
 
     public function isIterable($var)
@@ -76,12 +77,24 @@ class RouterOSAPI
         return $length;
     }
 
-    public function connect($ip, $login, $password)
+    public function connect($ip, $login, $password, $peerName = null)
     {
         if (! is_string($ip)) {
             $this->error_str = 'Invalid router target';
 
             return false;
+        }
+
+        $configuredTarget = trim($ip);
+        $allowInsecure = self::environmentFlag('ROUTEROS_ALLOW_INSECURE', false);
+        if (! $this->ssl && SiteConfig::getEnvironment() === 'production' && ! $allowInsecure) {
+            $this->error_str = 'Plaintext RouterOS transport is disabled';
+
+            return false;
+        }
+
+        if (! $this->ssl) {
+            $this->logSecurityWarning('Portico security warning: plaintext RouterOS transport is enabled.');
         }
 
         try {
@@ -93,11 +106,13 @@ class RouterOSAPI
         }
 
         $socketTarget = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? '['.$ip.']' : $ip;
+        $peerName = is_string($peerName) && trim($peerName) !== '' ? trim($peerName) : $configuredTarget;
+        $port = $this->port === null ? ($this->ssl ? 8729 : 8728) : (int) $this->port;
         for ($ATTEMPT = 1; $ATTEMPT <= $this->attempts; $ATTEMPT++) {
             $this->connected = false;
-            $PROTOCOL = ($this->ssl ? 'ssl://' : '');
-            $context = stream_context_create(['ssl' => ['ciphers' => 'ADH:ALL', 'verify_peer' => false, 'verify_peer_name' => false]]);
-            $endpoint = $PROTOCOL.$socketTarget.':'.$this->port;
+            $protocol = $this->ssl ? 'tls://' : '';
+            $context = $this->createStreamContext($peerName);
+            $endpoint = $protocol.$socketTarget.':'.$port;
             $this->debug('Connection attempt #'.$ATTEMPT.' to '.$endpoint.'...');
             $this->socket = $this->openSocket($endpoint, $context);
             if ($this->socket) {
@@ -147,6 +162,43 @@ class RouterOSAPI
     protected function openSocket(string $endpoint, $context)
     {
         return @stream_socket_client($endpoint, $this->error_no, $this->error_str, $this->timeout, STREAM_CLIENT_CONNECT, $context);
+    }
+
+    protected function createStreamContext(string $peerName)
+    {
+        if (! $this->ssl) {
+            return stream_context_create();
+        }
+
+        $options = [
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+            'allow_self_signed' => false,
+            'peer_name' => $peerName,
+            'SNI_enabled' => true,
+            'crypto_method' => STREAM_CRYPTO_METHOD_TLS_CLIENT,
+        ];
+        $caFile = getenv('ROUTEROS_TLS_CA_FILE');
+        if ($caFile !== false && trim($caFile) !== '') {
+            $options['cafile'] = trim($caFile);
+        }
+
+        return stream_context_create(['ssl' => $options]);
+    }
+
+    protected function logSecurityWarning(string $message): void
+    {
+        error_log($message);
+    }
+
+    private static function environmentFlag(string $name, bool $default): bool
+    {
+        $value = getenv($name);
+        if ($value === false || trim($value) === '') {
+            return $default;
+        }
+
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $default;
     }
 
     public function disconnect()

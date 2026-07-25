@@ -26,7 +26,7 @@ class ApiController extends Controller
         $user = $input['user'] ?? '';
         $pass = $input['password'] ?? '';
         $id = $input['id'] ?? null;
-        $port = $input['port'] ?? 8728; // Default port
+        $port = $input['port'] ?? null;
 
         // Fallback to stored password if empty and ID provided (Edit Mode)
         if (empty($pass) && ! empty($id)) {
@@ -56,9 +56,11 @@ class ApiController extends Controller
 
         $api = new RouterOSAPI;
         // $api->debug = true; // Enable for debugging
-        $api->port = (int) $port;
+        if ($port !== null) {
+            $api->port = (int) $port;
+        }
 
-        if ($api->connect($resolvedIp, $user, $pass)) {
+        if ($api->connect($resolvedIp, $user, $pass, (string) $ip)) {
             $api->write('/interface/print');
             $read = $api->read(false);
             $interfaces = $api->parseResponse($read);
