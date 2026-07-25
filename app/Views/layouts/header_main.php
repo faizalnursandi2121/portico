@@ -14,7 +14,7 @@ $title = isset($title) ? $title : SiteConfig::APP_NAME;
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $title; ?></title>
+    <title><?= htmlspecialchars((string) $title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></title>
     <meta name="theme-color" content="<?= $themecolor ?>" />
     
     <!-- Icons -->
@@ -142,4 +142,3 @@ $title = isset($title) ? $title : SiteConfig::APP_NAME;
     }
 ?>
     
-

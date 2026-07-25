@@ -53,6 +53,8 @@ include ROOT.'/app/Views/layouts/header_public.php';
 
     <?php include ROOT.'/app/Views/layouts/footer_public.php'; ?>
 
+    <script src="/assets/js/status-renderer.js"></script>
+
     <!-- Logic Script -->
     <script>
 
@@ -83,84 +85,20 @@ include ROOT.'/app/Views/layouts/header_public.php';
                 const json = await response.json();
 
                 if (json.success) {
-                    const d = json.data;
-                    
-                    // Build HTML for SweetAlert
-                    // Status Badge Logic
-                    // Status Badge Logic (Glassmorphism)
-                    let statusColor = 'bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-800 dark:text-blue-400';
-                    if (d.status === 'active') statusColor = 'bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:border-emerald-800 dark:text-emerald-400';
-                    if (d.status === 'expired') statusColor = 'bg-slate-500/10 text-slate-600 border-slate-200 dark:border-slate-800 dark:text-slate-400';
-                    if (d.status === 'limited') statusColor = 'bg-orange-500/10 text-orange-600 border-orange-200 dark:border-orange-800 dark:text-orange-400';
-                    if (d.status === 'locked') statusColor = 'bg-red-500/10 text-red-600 border-red-200 dark:border-red-800 dark:text-red-400';
-
-                    const htmlContent = `
-                        <div class="text-left mt-6 relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl ring-1 ring-black/5 dark:ring-white/5">
-                            <!-- Background Decoration -->
-                            <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                            
-                            <!-- Header -->
-                            <div class="relative p-5 md:p-6 border-b border-white/10 flex justify-between items-center bg-white/10 dark:bg-black/20">
-                                <div>
-                                    <span class="text-[10px] text-accents-5 font-bold uppercase tracking-widest block mb-0.5">${window.i18n.t('status.code')}</span>
-                                    <span class="font-mono text-xl md:text-2xl font-black tracking-tighter text-foreground">${d.username}</span>
-                                </div>
-                                <div class="px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] border ${statusColor} shadow-sm backdrop-blur-sm bg-opacity-80">
-                                    ${d.status}
-                                </div>
-                            </div>
-
-                            <!-- Data Usage Bar -->
-                            <div class="relative p-5 md:p-6 pb-2">
-                                <div class="flex justify-between items-end mb-2">
-                                    <span class="text-xs font-bold text-accents-5 uppercase tracking-wide">${window.i18n.t('status.data_remaining')}</span>
-                                    <span class="text-lg font-black text-blue-600 dark:text-blue-400 font-mono tracking-tight">${d.data_left}</span>
-                                </div>
-                                <div class="w-full h-2.5 bg-accents-2 rounded-full overflow-hidden shadow-inner ring-1 ring-black/5 dark:ring-white/5">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg relative overflow-hidden" style="width: 100%">
-                                        <div class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
-                                    </div> 
-                                </div>
-                                <div class="text-right mt-1.5">
-                                     <span class="text-[10px] font-semibold text-accents-4 uppercase tracking-wider">${window.i18n.t('status.used')}: <span class="text-foreground">${d.data_used}</span></span>
-                                </div>
-                            </div>
-
-                            <!-- Details Table -->
-                            <div class="p-5 md:p-6 pt-2">
-                                <table class="w-full text-sm text-left">
-                                    <tbody class="divide-y divide-white/10">
-                                        <tr>
-                                            <td class="py-3 text-accents-5 font-bold uppercase tracking-wide text-[10px]">${window.i18n.t('status.package')}</td>
-                                            <td class="py-3 text-right font-bold text-foreground font-mono">${d.profile}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="py-3 text-accents-5 font-bold uppercase tracking-wide text-[10px]">${window.i18n.t('status.validity')}</td>
-                                            <td class="py-3 text-right font-bold text-foreground font-mono">${d.validity}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="py-3 text-accents-5 font-bold uppercase tracking-wide text-[10px]">${window.i18n.t('status.uptime')}</td>
-                                            <td class="py-3 text-right font-medium text-foreground font-mono">${d.uptime_used}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="py-3 text-accents-5 font-bold uppercase tracking-wide text-[10px]">${window.i18n.t('status.expires')}</td>
-                                            <td class="py-3 text-right font-medium text-foreground font-mono">${d.expiration}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    `;
+                    const htmlContent = window.renderStatusDetails(json.data, (key) => window.i18n.t(key));
 
                     Mivo.alert('success', window.i18n.t('status.details_title'), htmlContent, {
                         customClass: { popup: 'w-full max-w-md' } // Override width only, others merged
                     });
 
                 } else {
+                    const errorMessage = document.createElement('span');
+                    errorMessage.textContent = json.message && json.message !== 'Voucher Not Found'
+                        ? json.message
+                        : window.i18n.t('status.not_found_desc');
                     Mivo.alert('error', 
                         window.i18n.t('status.not_found_title'), 
-                        json.message && json.message !== 'Voucher Not Found' ? json.message : window.i18n.t('status.not_found_desc'),
+                        errorMessage,
                         {
                             confirmButtonText: window.i18n.t('status.try_again'),
                             didClose: () => {
@@ -193,4 +131,3 @@ include ROOT.'/app/Views/layouts/header_public.php';
             }
         }
     </script>
-

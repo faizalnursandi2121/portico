@@ -3,6 +3,7 @@
 $errorCode = isset($code) ? $code : 404;
 $errorMessage = isset($message) ? $message : 'Page Not Found';
 $errorDescription = isset($description) ? $description : 'The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.';
+$escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
 // Ensure title is set for header.php
 $title = "$errorCode - $errorMessage";
@@ -15,15 +16,15 @@ require_once ROOT.'/app/Views/layouts/header_main.php';
             <i data-lucide="alert-triangle" class="w-10 h-10 text-accents-5"></i>
         </div>
         
-        <h1 class="text-6xl font-extrabold tracking-tighter mb-4 text-foreground"><?= $errorCode ?></h1>
+        <h1 class="text-6xl font-extrabold tracking-tighter mb-4 text-foreground"><?= $escape($errorCode) ?></h1>
         
         <!-- Use data-i18n if message looks like a key (starts with errors.), otherwise show raw -->
-        <h2 class="text-2xl font-bold mb-4 text-foreground" <?= (strpos($errorMessage, 'errors.') === 0) ? 'data-i18n="'.$errorMessage.'"' : '' ?>>
-            <?= $errorMessage ?>
+        <h2 class="text-2xl font-bold mb-4 text-foreground" <?= (strpos((string) $errorMessage, 'errors.') === 0) ? 'data-i18n="'.$escape($errorMessage).'"' : '' ?>>
+            <?= $escape($errorMessage) ?>
         </h2>
         
-        <p class="text-accents-5 max-w-md mx-auto mb-8" <?= (strpos($errorDescription, 'errors.') === 0) ? 'data-i18n="'.$errorDescription.'"' : '' ?>>
-            <?= $errorDescription ?>
+        <p class="text-accents-5 max-w-md mx-auto mb-8" <?= (strpos((string) $errorDescription, 'errors.') === 0) ? 'data-i18n="'.$escape($errorDescription).'"' : '' ?>>
+            <?= $escape($errorDescription) ?>
         </p>
         
         <div class="flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto">
